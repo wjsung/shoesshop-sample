@@ -2,10 +2,16 @@
   (:require
     [conman.core :as conman]
     [mount.core :refer [defstate]]
-    [shoesshop-sample.config :refer [env]]))
+    [shoesshop-sample.config :refer [env]]
+    ))
 
 (defstate ^:dynamic *db*
-           :start (conman/connect! {:jdbc-url (env :database-url)})
+           :start (conman/connect!
+                    {:datasource
+                     (doto (org.h2.jdbcx.JdbcDataSource.)
+                       (.setURL (env :database-url))
+                       (.setUser "")
+                       (.setPassword ""))})
            :stop (conman/disconnect! *db*))
 
 (conman/bind-connection *db* "sql/queries.sql")

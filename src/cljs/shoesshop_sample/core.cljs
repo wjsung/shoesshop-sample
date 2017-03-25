@@ -1,15 +1,20 @@
 (ns shoesshop-sample.core
   (:require [reagent.core :as r]
+            [reagent.session :as session]
             [re-frame.core :as rf]
             [secretary.core :as secretary]
             [goog.events :as events]
             [goog.history.EventType :as HistoryEventType]
-            [markdown.core :refer [md->html]]
             [ajax.core :refer [GET POST]]
             [shoesshop-sample.ajax :refer [load-interceptors!]]
             [shoesshop-sample.handlers]
-            [shoesshop-sample.subscriptions])
+            [shoesshop-sample.subscriptions]
+            [shoesshop-sample.views :as v]
+            )
   (:import goog.History))
+
+;; -------------------------
+;; nav & pages
 
 (defn nav-link [uri title page collapsed?]
   (let [selected-page (rf/subscribe [:page])]
@@ -19,37 +24,53 @@
       {:href uri
        :on-click #(reset! collapsed? true)} title]]))
 
+(defn user-menu []
+  (if-let [id (session/get :identity)]
+    [:ul.nav.navbar-nav.pull-xs-right
+     [:li.nav-item
+      [:a.dropdown-item.btn
+       {:on-click #(session/remove! :identity)}
+       [:i.fa.fa-user] " " id " | sign out"]]]
+    [:ul.nav.navbar-nav.pull-xs-right
+     [:li.nav-item [v/registration-button]]]))
+
 (defn navbar []
   (r/with-let [collapsed? (r/atom true)]
-    [:nav.navbar.navbar-dark.bg-primary
-     [:button.navbar-toggler.hidden-sm-up
-      {:on-click #(swap! collapsed? not)} "☰"]
-     [:div.collapse.navbar-toggleable-xs
-      (when-not @collapsed? {:class "in"})
-      [:a.navbar-brand {:href "#/"} "shoesshop-sample"]
-      [:ul.nav.navbar-nav
-       [nav-link "#/" "Home" :home collapsed?]
-       [nav-link "#/about" "About" :about collapsed?]]]]))
+              [:nav.navbar.navbar-dark.bg-primary
+               [:button.navbar-toggler.hidden-sm-up
+                {:on-click #(swap! collapsed? not)} "☰"]
+               [:div.collapse.navbar-toggleable-xs
+                (when-not @collapsed? {:class "in"})
+                  [:a.navbar-brand {:href "/"} "shoesshop-sample"]
+                  [:ul.nav.navbar-nav
+                   [nav-link "#/" "Home" :home collapsed?]
+                   [nav-link "#/about" "About" :about collapsed?]
+                   ;[nav-link "#/docs" "Docs" :docs collapsed?]
+                   ;[nav-link "#/docslup" "Docs Slub" :docslup collapsed?]
+                   ]
 
-(defn about-page []
-  [:div.container
-   [:div.row
-    [:div.col-md-12
-     [:img {:src (str js/context "/img/warning_clojure.png")}]]]])
+                [:div.navright
+                 [user-menu]
+                 ]
+                ]
 
-(defn home-page []
-  [:div.container
-   (when-let [docs @(rf/subscribe [:docs])]
-     [:div.row>div.col-sm-12
-      [:div {:dangerouslySetInnerHTML
-             {:__html (md->html docs)}}]])])
+               ]))
+
+
+(defn modal []
+  (when-let [session-modal (session/get :modal)]
+    [session-modal]))
 
 (def pages
-  {:home #'home-page
-   :about #'about-page})
+  {:home #'v/home-page
+   :about #'v/about-page
+   ;:docs #'v/docs-page
+   ;:docslup #'v/docslup-page
+   })
 
 (defn page []
   [:div
+   [modal]
    [navbar]
    [(pages @(rf/subscribe [:page]))]])
 
@@ -62,6 +83,12 @@
 
 (secretary/defroute "/about" []
   (rf/dispatch [:set-active-page :about]))
+
+(secretary/defroute "/docs" []
+                    (rf/dispatch [:set-active-page :docs]))
+
+(secretary/defroute "/docslup" []
+                    (rf/dispatch [:set-active-page :docslup]))
 
 ;; -------------------------
 ;; History

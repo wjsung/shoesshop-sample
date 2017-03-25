@@ -6,7 +6,10 @@
             [shoesshop-sample.config :refer [env]]
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.logging :as log]
-            [mount.core :as mount])
+            [mount.core :as mount]
+            [shoesshop-sample.env :refer [defaults]]
+            [luminus.logger :as logger]
+            )
   (:gen-class))
 
 (def cli-options

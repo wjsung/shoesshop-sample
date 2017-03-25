@@ -18,6 +18,11 @@ body {
 .navbar-nav .nav-link + .nav-link {
   margin-left: 0;
 }
+
+.navright{
+float:right;
+}
+
 @media (min-width: 34em) {
   .navbar-brand {
     float: left;
@@ -67,3 +72,17 @@ body {
     }
 }
 
+
+.modal-dialog {
+    z-index: 100;
+    margin: auto;
+    position: absolute;
+    top: 150px;
+    left: 0;
+    right: 0;
+
+}
+
+.modal-backdrop {
+    z-index: 1;
+}

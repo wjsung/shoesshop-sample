@@ -1,4 +1,11 @@
 -- :name create-user! :! :n
+-- creates a new user record
+INSERT INTO users
+(id, pass)
+VALUES (:id, :pass)
+
+
+-- :name create-userall! :! :n
 -- :doc creates a new user record
 INSERT INTO users
 (id, first_name, last_name, email, pass)

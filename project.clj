@@ -4,6 +4,7 @@
   :url "http://example.com/FIXME"
 
   :dependencies [[buddy "1.3.0"]
+                 [bouncer "1.0.0" ]
                  [cljs-ajax "0.5.8"]
                  [com.h2database/h2 "1.4.193"]
                  [compojure "1.5.2"]
@@ -11,6 +12,7 @@
                  [cprop "0.1.10"]
                  [funcool/struct "1.0.0"]
                  [luminus-immutant "0.2.3"]
+                 [luminus-log4j "0.1.5"]
                  [luminus-migrations "0.3.0"]
                  [luminus-nrepl "0.1.4"]
                  [markdown-clj "0.9.98"]
@@ -33,7 +35,8 @@
                  [ring/ring-core "1.6.0-RC1"]
                  [ring/ring-defaults "0.2.3"]
                  [secretary "1.2.3"]
-                 [selmer "1.10.6"]]
+                 [selmer "1.10.6"]
+                 ]
 
   :min-lein-version "2.0.0"
 

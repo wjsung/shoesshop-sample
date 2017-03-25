@@ -4,7 +4,9 @@
             [schema.core :as s]
             [compojure.api.meta :refer [restructure-param]]
             [buddy.auth.accessrules :refer [restrict]]
-            [buddy.auth :refer [authenticated?]]))
+            [buddy.auth :refer [authenticated?]]
+            [shoesshop-sample.routes.services.auth :as auth]
+            ))
 
 (defn access-error [_ _]
   (unauthorized {:error "unauthorized"}))
@@ -21,13 +23,27 @@
   [_ binding acc]
   (update-in acc [:letks] into [binding `(:identity ~'+compojure-api-request+)]))
 
+(s/defschema UserRegistration
+  {:id                     String
+   :pass                   String
+   :pass-confirm           String})
+
+(s/defschema Result
+  {:result                   s/Keyword
+   (s/optional-key :message) String})
+
 (defapi service-routes
   {:swagger {:ui "/swagger-ui"
              :spec "/swagger.json"
              :data {:info {:version "1.0.0"
                            :title "Sample API"
                            :description "Sample Services"}}}}
-  
+  (POST "/register" req
+    :return Result
+    :body [user UserRegistration]
+    :summary "register a new user"
+    (auth/register! req user))
+
   (GET "/authenticated" []
        :auth-rules authenticated?
        :current-user user
