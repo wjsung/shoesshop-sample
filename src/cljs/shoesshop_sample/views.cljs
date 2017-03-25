@@ -4,8 +4,10 @@
             [re-frame.core :refer [subscribe dispatch] :as rf]
             [markdown.core :refer [md->html]]
             [shoesshop-sample.util.slurp :include-macros true :refer [slurp]]
-            [ajax.core :as ajax]
             [shoesshop-sample.validation :refer [registration-errors]]
+            [ajax.core :as ajax]
+            [goog.crypt.base64 :as b64]
+            [clojure.string :as string]
 
             ))
 ;; test pages
@@ -135,8 +137,66 @@
 (defn registration-button []
   [:a.btn
    {:on-click #(session/put! :modal registration-form)}
-   "register"])
+   "Register"])
 
+;;Login
+(def timeout-ms (* 1000 60 30))
+
+(defn session-timer []
+  (when (session/get :identity)
+    (if (session/get :user-event)
+      (do
+        (session/remove! :user-event)
+        (js/setTimeout #(session-timer) timeout-ms))
+      (session/remove! :identity))))
+
+(defn encode-auth [user pass]
+  (->> (str user ":" pass) (b64/encodeString) (str "Basic ")))
+
+(defn login! [fields error]
+  (let [{:keys [id pass]} @fields]
+    (reset! error nil)
+    (ajax/POST "/login"
+               {:headers       {"Authorization"
+                                (encode-auth (when id (string/trim id)) pass)}
+                :handler       #(do
+                                  (session/remove! :modal)
+                                  (session/put! :identity id)
+                                  (js/setTimeout session-timer timeout-ms)
+                                  (reset! fields nil))
+                :error-handler #(reset! error (get-in % [:response :message]))})))
+
+(defn login-form []
+  (let [fields (atom {})
+        error (atom nil)]
+    (fn []
+      [modal
+       [:div "Shoes Shop Login"]
+       [:div
+        [:div.well.well-sm
+         [:strong "✱ required field"]]
+        [text-input "name" :id "enter a user name" fields]
+        [password-input "password" :pass "enter a password" fields]
+        (when-let [error @error]
+          [:div.alert.alert-danger error])]
+       [:div
+        [:button.btn.btn-primary
+         {:on-click #(login! fields error)}
+         "Login"]
+        [:button.btn.btn-danger
+         {:on-click #(session/remove! :modal)}
+         "Cancel"]]])))
+
+(defn login-button []
+  [:a.btn
+   {:on-click #(session/put! :modal login-form)}
+   "Login"])
+
+
+(defn upload-button []
+  [:a.dropdown-item.btn
+   {:on-click #(session/put! :modal login-form)}
+   "Upload"])
 
 ;;Home page
 (defn home-page []

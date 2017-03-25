@@ -6,6 +6,7 @@
             [buddy.auth.accessrules :refer [restrict]]
             [buddy.auth :refer [authenticated?]]
             [shoesshop-sample.routes.services.auth :as auth]
+            [schema.core :as s]
             ))
 
 (defn access-error [_ _]
@@ -44,10 +45,22 @@
     :summary "register a new user"
     (auth/register! req user))
 
+  (POST "/login" req
+    :header-params [authorization :- String]
+    :summary "log in the user and create a session"
+    :return Result
+    (auth/login! req authorization))
+
+  (POST "/logout" []
+    :summary "remove user session"
+    :return Result
+    (auth/logout!))
+
   (GET "/authenticated" []
        :auth-rules authenticated?
        :current-user user
        (ok {:user user}))
+
   (context "/api" []
     :tags ["thingie"]
 
@@ -79,4 +92,21 @@
       :return      Long
       :header-params [x :- Long, y :- Long]
       :summary     "x^y with header-parameters"
-      (ok (long (Math/pow x y))))))
+      (ok (long (Math/pow x y))))
+    )
+  )
+
+(defapi restricted-service-routes
+  {:swagger {:ui "/swagger-ui-private"
+             :spec "/swagger-private.json"
+             :data {:info {:version "1.0.0"
+                           :title "private API"
+                           :description "Private Services"}}}}
+
+  (GET "/plus" []
+    :return       Long
+    :query-params [x :- Long, {y :- Long 1}]
+    :summary      "x+y with query-parameters. y defaults to 1."
+    (ok (+ x y)))
+
+  )

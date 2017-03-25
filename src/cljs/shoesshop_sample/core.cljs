@@ -5,7 +5,7 @@
             [secretary.core :as secretary]
             [goog.events :as events]
             [goog.history.EventType :as HistoryEventType]
-            [ajax.core :refer [GET POST]]
+            [ajax.core :refer [GET POST] :as ajax]
             [shoesshop-sample.ajax :refer [load-interceptors!]]
             [shoesshop-sample.handlers]
             [shoesshop-sample.subscriptions]
@@ -27,11 +27,15 @@
 (defn user-menu []
   (if-let [id (session/get :identity)]
     [:ul.nav.navbar-nav.pull-xs-right
+     [:li.nav-item [v/upload-button]]
      [:li.nav-item
       [:a.dropdown-item.btn
-       {:on-click #(session/remove! :identity)}
+       {:on-click #(ajax/POST
+                     "/logout"
+                     {:handler (fn [] (session/remove! :identity))})}
        [:i.fa.fa-user] " " id " | sign out"]]]
     [:ul.nav.navbar-nav.pull-xs-right
+     [:li.nav-item [v/login-button]]
      [:li.nav-item [v/registration-button]]]))
 
 (defn navbar []
@@ -115,4 +119,5 @@
   (load-interceptors!)
   (fetch-docs!)
   (hook-browser-navigation!)
+  (session/put! :identity js/identity)
   (mount-components))
