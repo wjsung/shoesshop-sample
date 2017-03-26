@@ -1,11 +1,13 @@
 (ns shoesshop-sample.routes.services
   (:require [ring.util.http-response :refer :all]
             [compojure.api.sweet :refer :all]
+            [compojure.api.upload :refer :all]
             [schema.core :as s]
             [compojure.api.meta :refer [restructure-param]]
             [buddy.auth.accessrules :refer [restrict]]
             [buddy.auth :refer [authenticated?]]
             [shoesshop-sample.routes.services.auth :as auth]
+            [shoesshop-sample.routes.services.upload :as upload]
             [schema.core :as s]
             ))
 
@@ -103,10 +105,20 @@
                            :title "private API"
                            :description "Private Services"}}}}
 
+  (context "/admin" []
+
   (GET "/plus" []
     :return       Long
     :query-params [x :- Long, {y :- Long 1}]
     :summary      "x+y with query-parameters. y defaults to 1."
     (ok (+ x y)))
 
+  (POST "/upload" req
+    :multipart-params [file :- TempFileUpload, name :- String, description :- String, price :- String ]
+    :middleware [wrap-multipart-params]
+    :summary "handles image upload"
+    :return Result
+    (upload/upload-product! (:identity req) file name description price))
+
   )
+ )

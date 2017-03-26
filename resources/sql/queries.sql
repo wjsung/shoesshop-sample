@@ -26,3 +26,11 @@ WHERE id = :id
 -- :doc delete a user given the id
 DELETE FROM users
 WHERE id = :id
+
+--START:product-upload
+-- :name product-upload! :! :n
+-- saves a product indo to the database
+INSERT INTO products
+(owner, name,price, description, imgpath)
+VALUES (:owner, :name, :price, :description, :imgpath)
+--END:upload-product

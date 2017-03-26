@@ -8,8 +8,11 @@
             [ajax.core :as ajax]
             [goog.crypt.base64 :as b64]
             [clojure.string :as string]
-
-            ))
+            [goog.events :as gev]
+            )
+  (:import goog.net.IframeIo
+                       goog.net.EventType
+                       [goog.events EventType]))
 ;; test pages
 (defn docs-page []
   [:div.container
@@ -191,11 +194,60 @@
   [:a.btn
    {:on-click #(session/put! :modal login-form)}
    "Login"])
+;;upload
 
+(defn upload! [upload-form-id status]
+  (reset! status nil)
+  (let [io (IframeIo.)]
+    (gev/listen
+      io goog.net.EventType.SUCCESS
+      #(reset! status [:div.alert.alert-success "file uploaded successfully"]))
+    (gev/listen
+      io goog.net.EventType.ERROR
+      #(reset! status [:div.alert.alert-danger "failed to upload the file"]))
+    (.setErrorChecker io #(= "error" (.getResponseText io)))
+    (.sendFromForm
+      io
+      (.getElementById js/document upload-form-id)
+      "admin/upload")))
+
+(defn upload-form []
+  (let [status (atom nil)
+        form-id "upload-form"]
+  (fn []
+    [modal
+     [:div "Product upload"]
+     [:div
+      (when @status @status)
+      [:form {:id       form-id
+              :enc-type "multipart/form-data"
+              :method   "POST"}
+       [:fieldset.form-group
+        [:label {:for "name"} "name of Product"]
+        [:input.form-control {:id "name" :name "name" :type "text"}]
+        [:label {:for "price"} "price of Product"]
+        [:input.form-control {:id "price" :name "price" :type "text"}]
+        [:label {:for "description"} "description of Product"]
+        [:textarea.form-control {:id "description" :name "description"}]
+        [:label {:for "file"} "select an image for upload"]
+        [:input.form-control {:id "file" :name "file" :type "file"}]
+        ]]
+      ]
+     [:div
+
+      [:button.btn.btn-primary
+       {:on-click #(upload! form-id status)}
+       "Add new Product"]
+      [:button.btn.btn-danger
+       {:on-click #(session/remove! :modal)}
+       "Cancel"]]
+
+     ]
+    )))
 
 (defn upload-button []
   [:a.dropdown-item.btn
-   {:on-click #(session/put! :modal login-form)}
+   {:on-click #(session/put! :modal upload-form)}
    "Upload"])
 
 ;;Home page
